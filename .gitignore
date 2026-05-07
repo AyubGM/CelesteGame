@@ -361,3 +361,17 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+*.exe
+*.ilk
+*.zip
+*.exp
+*.obj
+*.dll
+*.pdb
+*.nativecodeanalysis.xml
+*.lib
+build
+.vs
+c_cpp_properties.json
+settings.json
