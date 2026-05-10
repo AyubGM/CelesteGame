@@ -134,7 +134,13 @@
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\BumpAllocator.h" />
     <ClInclude Include="src\File.h" />
+    <ClInclude Include="src\gl_renderer.h" />
     <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="vendor\glcorearb.h" />
+    <ClInclude Include="vendor\glext.h" />
+    <ClInclude Include="vendor\glxext.h" />
+    <ClInclude Include="vendor\KHR\khrplatform.h" />
+    <ClInclude Include="vendor\wglext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

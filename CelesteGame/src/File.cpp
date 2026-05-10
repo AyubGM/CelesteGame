@@ -47,7 +47,8 @@ namespace CelesteGame
 
     char* ReadFile(const char* filePath, int* out_fileSize, char* buffer)
     {
-        FILE* file = fopen(filePath, "rb");
+        FILE* file = nullptr;
+        fopen_s(&file,filePath, "rb");
         if (!file) {
             SD_ERROR("Failed opening File: {}", filePath);
             return nullptr;
@@ -59,7 +60,8 @@ namespace CelesteGame
     // 3. Public: Read using Allocator
     char* ReadFile(const char* filePath, int* out_fileSize, BumpAllocator& bumpAllocator)
     {
-        FILE* file = fopen(filePath, "rb");
+        FILE* file = nullptr;
+        fopen_s(&file, filePath, "rb");
         if (!file) {
             SD_ERROR("Failed opening File: {}", filePath);
             return nullptr;
@@ -80,7 +82,8 @@ namespace CelesteGame
         SD_ASSERT(filePath, "No filePath supplied!");
         SD_ASSERT(buffer, "No buffer supplied!");
 
-        FILE* file = fopen(filePath, "wb");
+        FILE* file = nullptr;
+        fopen_s(&file, filePath, "wb");
         if (!file)
         {
             SD_ERROR("Failed opening File for write: {}", filePath);
