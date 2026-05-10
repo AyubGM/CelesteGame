@@ -3,6 +3,14 @@
 #include <sstream>
 #include <cstdio>
 
+#if defined(_MSC_VER)
+#define SD_DEBUG_BREAK() __debugbreak()
+#elif defined(__GNUC__) || defined(__clang__)
+#define SD_DEBUG_BREAK() __builtin_trap()
+#else
+#define SD_DEBUG_BREAK() std::abort()
+#endif
+
 enum class TextColor {
     BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE,
     BRIGHT_BLACK, BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW,
@@ -18,39 +26,35 @@ inline constexpr std::string_view TextColorTable[] = {
 };
 
 template <typename... Args>
-void _log(std::string_view prefix, TextColor color, std::string_view fmt, Args... args) {
-    char buffer[1024];
-    std::snprintf(buffer, sizeof(buffer), fmt.data(), args...);
+void _log(std::string_view prefix, TextColor color, std::format_string<Args...> fmt, Args&&... args) {
+    std::string formatted_msg = std::format(fmt, std::forward<Args>(args)...);
 
-    std::ostringstream oss;
-    oss << TextColorTable[static_cast<int>(color)]
-        << prefix << buffer
-        << "\033[0m";
-
-    std::cout << oss.str() << std::endl;
+    std::cout << TextColorTable[static_cast<int>(color)]
+        << prefix << formatted_msg
+        << "\033[0m\n";
 }
 
 // Inline wrappers
+
 template <typename... Args>
-inline void SD_TRACE(std::string_view fmt, Args... args) {
-    _log("TRACE: ", TextColor::GREEN, fmt, args...);
+inline void SD_TRACE(std::format_string<Args...> fmt, Args&&... args) {
+    _log("TRACE: ", TextColor::GREEN, fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void SD_WARN(std::string_view fmt, Args... args) {
-    _log("WARN: ", TextColor::YELLOW, fmt, args...);
+inline void SD_WARN(std::format_string<Args...> fmt, Args&&... args) {
+    _log("WARN: ", TextColor::YELLOW, fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void SD_ERROR(std::string_view fmt, Args... args) {
-    _log("ERROR: ", TextColor::RED, fmt, args...);
+inline void SD_ERROR(std::format_string<Args...> fmt, Args&&... args) {
+    _log("ERROR: ", TextColor::RED, fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline void SD_ASSERT(bool condition, std::string_view fmt, Args... args) {
-    if (!condition)
-    {
-        SD_ERROR(fmt, args...);
-        __debugbreak();
+inline void SD_ASSERT(bool condition, std::format_string<Args...> fmt, Args&&... args) {
+    if (!condition) {
+        SD_ERROR(fmt, std::forward<Args>(args)...);
+        SD_DEBUG_BREAK();
     }
 }

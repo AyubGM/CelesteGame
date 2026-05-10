@@ -126,10 +126,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\BumpAllocator.cpp" />
     <ClCompile Include="src\CelesteGame.cpp" />
+    <ClCompile Include="src\File.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\BumpAllocator.h" />
+    <ClInclude Include="src\File.h" />
     <ClInclude Include="src\Logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
