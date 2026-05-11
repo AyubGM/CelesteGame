@@ -1,6 +1,7 @@
 #pragma once
-
 #include "../vendor/glcorearb.h"
+#define GL_GLEXT_PROTOTYPES
+#include "../vendor/wglext.h"
 #include "Logger.h"
 
 static PFNGLCREATEPROGRAMPROC glCreateProgram_ptr;
