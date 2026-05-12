@@ -230,10 +230,13 @@ namespace CelesteGame {
         }
         case WM_SIZE:
         {
-            RECT rect = {};
+            /*RECT rect = {};
             GetClientRect(app.m_Window, &rect);
             g_InputState.ScreenSizeX = rect.right - rect.left;
-            g_InputState.ScreenSizeY = rect.top - rect.bottom;
+            g_InputState.ScreenSizeY = rect.bottom - rect.top;*/
+            g_InputState.ScreenSizeX = LOWORD(lParam);
+            g_InputState.ScreenSizeY = HIWORD(lParam);
+            return 0;
         }
         }
 

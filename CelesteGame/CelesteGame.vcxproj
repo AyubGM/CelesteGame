@@ -142,6 +142,7 @@
     <ClCompile Include="src\CelesteGame.cpp" />
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\gl_renderer.cpp" />
+    <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\OpenGLSetup.cpp" />
   </ItemGroup>

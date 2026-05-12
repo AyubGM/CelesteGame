@@ -44,6 +44,7 @@ namespace CelesteGame {
 			SD_ASSERT(false, "Failed to compile {} Shader: {}", shaderName, shaderLog);
 			return false;
 		}
+		SD_TRACE("Shader Compiled: {}", shaderName);
 		return true;
 	}
 
@@ -82,8 +83,8 @@ namespace CelesteGame {
 				return false;
 			}
 
-			if (!CompileShader(vertShaderID, vertResult->data(), "Vertex") ||
-				!CompileShader(fragShaderID, fragResult->data(), "Fragment"))
+			if (!CompileShader(vertShaderID, vertResult->data(), "QuadVertex") ||
+				!CompileShader(fragShaderID, fragResult->data(), "QuadFragment"))
 			{
 				return false;
 			}
@@ -104,7 +105,7 @@ namespace CelesteGame {
 		glBindVertexArray(g_GlContext.QuadVAO);
 		
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL); 
+		glDepthFunc(GL_GREATER); 
 	
 		glUseProgram(g_GlContext.ProgramID);
 		return true;
@@ -116,9 +117,10 @@ namespace CelesteGame {
 		glClearDepth(0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, g_InputState.ScreenSizeX, g_InputState.ScreenSizeY);
+		//glViewport(0, 0, 1200,720);
 
 		
-		//glBindVertexArray(g_GlContext.QuadVAO);
+		glBindVertexArray(g_GlContext.QuadVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 

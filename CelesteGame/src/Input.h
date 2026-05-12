@@ -6,4 +6,4 @@ struct Input
 	int ScreenSizeY;
 };
 
-static Input g_InputState;
+extern Input g_InputState;
