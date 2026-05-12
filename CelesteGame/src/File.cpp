@@ -1,110 +1,87 @@
 #pragma once
 #include "File.h"
 #include "Logger.h"
-#include <sys/stat.h>
-#include <cstdio>
-#include <cstring>
+
+#include <fstream>
+#include <optional>
+
+#include <chrono>
 
 namespace CelesteGame
 {
     // Uses stat to get last modified time
-    long long GetTimestamp(const char* filePath)
+    long long GetTimestamp(const std::filesystem::path& filePath)
     {
-        struct stat file_stat = {};
-        if (stat(filePath, &file_stat) == 0)
-        {
-            return static_cast<long long>(file_stat.st_mtime);
-        }
-        return 0;
+        std::error_code ec;
+        auto ftime = std::filesystem::last_write_time(filePath, ec);
+
+        if (ec) return 0;
+
+        return std::chrono::duration_cast<std::chrono::seconds>(
+            ftime.time_since_epoch()).count();
     }
 
-    // Faster than opening/closing: check access rights
-    bool FileExists(const char* filePath)
+    bool FileExists(const std::filesystem::path& filePath)
     {
-        SD_ASSERT(filePath, "No filePath supplied!");
-        struct stat buffer;
-        return (stat(filePath, &buffer) == 0);
+        SD_ASSERT(!filePath.empty(), "No filePath supplied!");
+        std::error_code ec;
+        return std::filesystem::exists(filePath, ec);
     }
 
-    long GetFileSize(FILE* file)
+    std::optional<uintmax_t> GetFileSize(const std::filesystem::path& filePath)
     {
-        fseek(file, 0, SEEK_END);
-        long size = ftell(file);
-        fseek(file, 0, SEEK_SET);
+        std::error_code ec;
+        auto size = std::filesystem::file_size(filePath, ec);
+        if (ec) return std::nullopt;
         return size;
     }
 
-    static char* ReadFileInternal(FILE* file, long size, int* out_fileSize, char* buffer)
+    std::optional<std::span<char>> ReadFile(const std::filesystem::path& filePath, std::span<char> buffer)
     {
-        size_t bytesRead = fread(buffer, 1, size, file);
-        buffer[bytesRead] = '\0';
-
-        if (out_fileSize) *out_fileSize = static_cast<int>(bytesRead);
-
-        fclose(file);
-        return buffer;
-    }
-
-    char* ReadFile(const char* filePath, int* out_fileSize, char* buffer)
-    {
-        FILE* file = nullptr;
-        fopen_s(&file,filePath, "rb");
-        if (!file) {
-            SD_ERROR("Failed opening File: {}", filePath);
-            return nullptr;
-        }
-        long size = GetFileSize(file);
-        return ReadFileInternal(file, size, out_fileSize, buffer);
-    }
-
-    // 3. Public: Read using Allocator
-    char* ReadFile(const char* filePath, int* out_fileSize, BumpAllocator& bumpAllocator)
-    {
-        FILE* file = nullptr;
-        fopen_s(&file, filePath, "rb");
-        if (!file) {
-            SD_ERROR("Failed opening File: {}", filePath);
-            return nullptr;
-        }
-
-        long size = GetFileSize(file);
-
-        char* buffer = static_cast<char*>(bumpAllocator.alloc(size + 1));
-        if (!buffer) {
-            fclose(file);
-            return nullptr;
-        }
-
-        return ReadFileInternal(file, size, out_fileSize, buffer);
-    }
-    void WriteFile(const char* filePath, const char* buffer, int size)
-    {
-        SD_ASSERT(filePath, "No filePath supplied!");
-        SD_ASSERT(buffer, "No buffer supplied!");
-
-        FILE* file = nullptr;
-        fopen_s(&file, filePath, "wb");
+        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
         if (!file)
         {
-            SD_ERROR("Failed opening File for write: {}", filePath);
+            SD_ERROR("Failed opening File: {}", filePath.string());
+            return std::nullopt;
+        }
+
+        auto size = file.tellg();
+
+        if (size < 0 || static_cast<size_t>(size) > buffer.size() - 1)
+        {
+            SD_ERROR("Buffer too small or invalid for File: {}", filePath.string());
+            return std::nullopt;
+        }
+
+        file.seekg(0, std::ios::beg);
+        if (file.read(buffer.data(), size))
+        {
+            buffer[size] = '\0';
+            return buffer.first(size);
+        }
+
+        return std::nullopt;
+    }
+
+
+    inline void WriteFile(const std::filesystem::path& filePath, std::span<const char> buffer)
+    {
+        SD_ASSERT(!filePath.empty(), "No filePath supplied!");
+        SD_ASSERT(!buffer.empty(), "No buffer supplied!");
+
+        std::ofstream file(filePath, std::ios::binary);
+        if (!file)
+        {
+            SD_ERROR("Failed opening File for write: {}", filePath.string());
             return;
         }
 
-        fwrite(buffer, 1, size, file);
-        fclose(file);
+        file.write(buffer.data(), buffer.size());
     }
 
-    bool CopyFile(const char* srcPath, const char* destPath, BumpAllocator& bumpAllocator)
+    inline bool CopyFile(const std::filesystem::path& srcPath, const std::filesystem::path& destPath)
     {
-        int size = 0;
-        char* data = ReadFile(srcPath, &size, bumpAllocator);
-
-        if (data)
-        {
-            WriteFile(destPath, data, size);
-            return true;
-        }
-
-        return false;
+        std::error_code ec;
+        return std::filesystem::copy_file(srcPath, destPath, std::filesystem::copy_options::overwrite_existing, ec);
     }
 }

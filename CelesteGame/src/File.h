@@ -1,12 +1,13 @@
 #pragma once
 #include "BumpAllocator.h"
+#include <filesystem>
+#include <span>
 
 namespace CelesteGame
 {
-    long long GetTimestamp(const char* filePath);
-    bool FileExists(const char* filePath);
-    char* ReadFile(const char* filePath, int* out_fileSize, char* buffer);
-    char* ReadFile(const char* filePath, int* out_fileSize, BumpAllocator& bumpAllocator);
-    void WriteFile(const char* filePath, const char* buffer, int size);
-    bool CopyFile(const char* srcPath, const char* destPath, BumpAllocator& bumpAllocator);
+    long long GetTimestamp(std::filesystem::path& filePath);
+    bool FileExists(std::filesystem::path& filePath);
+    std::optional<std::span<char>> ReadFile(const std::filesystem::path& filePath, std::span<char> buffer);
+    void WriteFile(std::filesystem::path& filePath, std::span<const char> buffer);
+    bool CopyFile(const std::filesystem::path& srcPath, const std::filesystem::path& destPath);
 }

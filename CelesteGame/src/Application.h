@@ -3,6 +3,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <string>
+#include "BumpAllocator.h"
 
 namespace CelesteGame {
 	class Application
@@ -27,7 +28,9 @@ namespace CelesteGame {
 		void ProcessMessages();
 
 	private:
+		BumpAllocator m_TransientStorage;
 		HWND m_Window = nullptr;
+		HDC m_Dc;
 		bool m_Running = false;
 	};
 

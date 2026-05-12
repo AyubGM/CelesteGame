@@ -23,7 +23,7 @@ enum class TextColor {
 extern const std::string_view TextColorTable[];
 
 template <typename... Args>
-void _log(std::string_view prefix, TextColor color, std::format_string<Args...> fmt, Args&&... args) {
+void _SD_LOG_INTERNAL(std::string_view prefix, TextColor color, std::format_string<Args...> fmt, Args&&... args) {
     std::string formatted_msg = std::format(fmt, std::forward<Args>(args)...);
 
     std::cout << TextColorTable[static_cast<int>(color)]
@@ -31,27 +31,22 @@ void _log(std::string_view prefix, TextColor color, std::format_string<Args...> 
         << "\033[0m\n";
 }
 
-// Inline wrappers
+#define SD_DEBUG
+#ifdef SD_DEBUG
+#define SD_TRACE(fmt, ...) _SD_LOG_INTERNAL("TRACE: ", TextColor::GREEN, fmt, ##__VA_ARGS__)
+#define SD_WARN(fmt, ...)  _SD_LOG_INTERNAL("WARN:  ", TextColor::YELLOW, fmt, ##__VA_ARGS__)
+#define SD_ERROR(fmt, ...) _SD_LOG_INTERNAL("ERROR: ", TextColor::RED, fmt, ##__VA_ARGS__)
 
-template <typename... Args>
-inline void SD_TRACE(std::format_string<Args...> fmt, Args&&... args) {
-    _log("TRACE: ", TextColor::GREEN, fmt, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-inline void SD_WARN(std::format_string<Args...> fmt, Args&&... args) {
-    _log("WARN: ", TextColor::YELLOW, fmt, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-inline void SD_ERROR(std::format_string<Args...> fmt, Args&&... args) {
-    _log("ERROR: ", TextColor::RED, fmt, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-inline void SD_ASSERT(bool condition, std::format_string<Args...> fmt, Args&&... args) {
-    if (!condition) {
-        SD_ERROR(fmt, std::forward<Args>(args)...);
-        SD_DEBUG_BREAK();
-    }
-}
+#define SD_ASSERT(condition, fmt, ...) \
+        do { \
+            if (!(condition)) { \
+                SD_ERROR(fmt, ##__VA_ARGS__); \
+                SD_DEBUG_BREAK(); \
+            } \
+        } while (0)
+#else
+#define SD_TRACE(fmt, ...)
+#define SD_WARN(fmt, ...)
+#define SD_ERROR(fmt, ...)
+#define SD_ASSERT(condition, fmt, ...)
+#endif

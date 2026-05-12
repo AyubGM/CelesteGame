@@ -1,11 +1,26 @@
 #include "Application.h"
 #include "Logger.h"
-#define GL_GLEXT_PROTOTYPES
 #include "gl_renderer.h"
+#include "Utils.h"
+#include "Input.h"
+#include <filesystem>
+#include "../vendor/glcorearb.h"
+#include "../vendor/wglext.h"
 
 namespace CelesteGame {
 
-	Application::Application() {}
+	Application::Application() : m_TransientStorage(MB(50))
+    {
+    
+        std::error_code ec;
+        auto cwd = std::filesystem::current_path(ec);
+        if (!ec) {
+            SD_TRACE("Current working directory: {}", cwd.string());
+        }
+        else {
+            SD_ERROR("Failed to get current_path: {}", ec.message());
+        }
+    }
 
     Application::~Application() {}
 
@@ -113,8 +128,8 @@ namespace CelesteGame {
 
             if (!m_Window) return false;
 
-            HDC dc = GetDC(m_Window);
-            if (!dc)
+            m_Dc = GetDC(m_Window);
+            if (!m_Dc)
             {
                 SD_ASSERT(false, "Faild to get HDC");
                 return false;
@@ -136,7 +151,7 @@ namespace CelesteGame {
 
             UINT numPixelFormats;
             int pixelFormat = 0;
-            if (!wglChoosePixelFormatARB(dc, pixelAttribs,
+            if (!wglChoosePixelFormatARB(m_Dc, pixelAttribs,
                 0, // Float List
                 1, // Max Formats
                 &pixelFormat,
@@ -147,9 +162,9 @@ namespace CelesteGame {
             }
 
             PIXELFORMATDESCRIPTOR pfd = { 0 };
-            DescribePixelFormat(dc, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+            DescribePixelFormat(m_Dc, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-            if (!SetPixelFormat(dc, pixelFormat, &pfd))
+            if (!SetPixelFormat(m_Dc, pixelFormat, &pfd))
             {
                 SD_ASSERT(0, "Failed to SetPixelFormat");
                 return true;
@@ -164,14 +179,14 @@ namespace CelesteGame {
               0 // Terminate the Array
             };
 
-            HGLRC rc = wglCreateContextAttribsARB(dc, 0, contextAttribs);
+            HGLRC rc = wglCreateContextAttribsARB(m_Dc, 0, contextAttribs);
             if (!rc)
             {
                 SD_ASSERT(0, "Failed to crate Render Context for OpenGL");
                 return false;
             }
 
-            if (!wglMakeCurrent(dc, rc))
+            if (!wglMakeCurrent(m_Dc, rc))
             {
                 SD_ASSERT(0, "Faield to wglMakeCurrent");
                 return false;
@@ -181,6 +196,8 @@ namespace CelesteGame {
 
         ShowWindow(m_Window, SW_SHOW);
         m_Running = true;
+
+        GLInit(m_TransientStorage);
         return true;
     }
 
@@ -196,6 +213,8 @@ namespace CelesteGame {
         while (m_Running) {
             ProcessMessages();
 
+            GLRender();
+            SwapBuffers(m_Dc);
         }
     }
 
@@ -205,9 +224,20 @@ namespace CelesteGame {
 
         switch (msg) {
         case WM_CLOSE:
+        {
             app.m_Running = false;
             return 0;
         }
+        case WM_SIZE:
+        {
+            RECT rect = {};
+            GetClientRect(app.m_Window, &rect);
+            g_InputState.ScreenSizeX = rect.right - rect.left;
+            g_InputState.ScreenSizeY = rect.top - rect.bottom;
+        }
+        }
+
+
         return DefWindowProcA(hwnd, msg, wParam, lParam);
     }
 }

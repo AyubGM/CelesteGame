@@ -70,6 +70,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -133,19 +141,30 @@
     <ClCompile Include="src\BumpAllocator.cpp" />
     <ClCompile Include="src\CelesteGame.cpp" />
     <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\gl_renderer.cpp" />
     <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\OpenGLSetup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\BumpAllocator.h" />
     <ClInclude Include="src\File.h" />
     <ClInclude Include="src\gl_renderer.h" />
+    <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="src\OpenGLSetup.h" />
+    <ClInclude Include="src\Utils.h" />
     <ClInclude Include="vendor\glcorearb.h" />
     <ClInclude Include="vendor\glext.h" />
     <ClInclude Include="vendor\glxext.h" />
     <ClInclude Include="vendor\KHR\khrplatform.h" />
     <ClInclude Include="vendor\wglext.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="assets\shaders\quad.frag" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\quad.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
