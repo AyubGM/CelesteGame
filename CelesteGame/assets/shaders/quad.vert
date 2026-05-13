@@ -1,29 +1,41 @@
 #version 430 core
 
+struct Transform
+{
+	ivec2 AtlasOffset;
+	ivec2 SpriteSize;
+    vec2 Pos;
+    vec2 Size;
+};
+
+layout(std430, binding = 0) buffer TransformSBO
+{
+  Transform transforms[];
+};
+
+uniform vec2 screenSize;
+
 layout (location = 0) out vec2 textureCoordsOut;
 
 void main()
 {
+
+    Transform transform = transforms[gl_InstanceID];
+
 	vec2 vertices[6] =
 	{
-	  // Top Left
-      vec2(-0.5, 0.5),
-      // Bottom Left
-      vec2(-0.5, -0.5),
-      // Top Right
-      vec2(0.5, 0.5),
-      // Top Right
-      vec2(0.5, 0.5),
-      // Bottom Left
-      vec2(-0.5, -0.5),
-      // Bottom Right
-      vec2(0.5, -0.5)
+	   transform.Pos,                                        // Top Left
+       vec2(transform.Pos + vec2(0.0, transform.Size.y)),    // Bottom Left
+       vec2(transform.Pos + vec2(transform.Size.x, 0.0)),    // Top Right
+       vec2(transform.Pos + vec2(transform.Size.x, 0.0)),    // Top Right
+       vec2(transform.Pos + vec2(0.0, transform.Size.y)),    // Bottom Left
+       transform.Pos + transform.Size                        // Bottom Right
 	};
 
-    float left = 0.0f;
-    float top = 0.0f;
-    float right = 16.0f;
-    float bottom = 16.0f;
+    float left = transform.AtlasOffset.x;
+    float top = transform.AtlasOffset.y;
+    float right = transform.AtlasOffset.x + transform.SpriteSize.x;
+    float bottom = transform.AtlasOffset.y + transform.SpriteSize.y;
 
    vec2 textureCoords[6] = 
    {
@@ -35,6 +47,14 @@ void main()
      vec2(right, bottom),
    };
 
-    gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
-    textureCoordsOut = textureCoords[gl_VertexID];
+
+    // Normalize Position
+  {
+    vec2 vertexPos = vertices[gl_VertexID];
+    vertexPos.y = -vertexPos.y + screenSize.y;
+    vertexPos = 2.0 * (vertexPos / screenSize) - 1.0;
+    gl_Position = vec4(vertexPos, 0.0, 1.0);
+  }
+
+   textureCoordsOut = textureCoords[gl_VertexID];
 }

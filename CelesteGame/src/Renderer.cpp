@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "OpenGLSetup.h"
 #include "stb_image.h"
+#include "RendererInterface.h"
 namespace CelesteGame {
 
 	static void APIENTRY GLDebugCallbackFn(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -24,6 +25,8 @@ namespace CelesteGame {
 	{
 		GLuint ProgramID = 0;
 		GLuint TextureID = 0;
+		GLuint transformSBOID;
+		GLuint ScreenSizeID = 0;
 		// I might need it
 		GLuint QuadVAO = 0;
 	};
@@ -134,9 +137,23 @@ namespace CelesteGame {
 		glGenVertexArrays(1, &g_GlContext.QuadVAO);
 		glBindVertexArray(g_GlContext.QuadVAO);
 		
+		// Texture Loading
 		{
 			std::filesystem::path texurePath = "assets/textures/TEXTURE_ATLAS.png";
 			LoadTexture(texurePath);
+		}
+
+		// Transform Stroge Buffer
+		{
+			glGenBuffers(1, &g_GlContext.transformSBOID);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_GlContext.transformSBOID);
+			CelesteGame::glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform) * MAX_TRASNSFORMS,
+				g_RenderData.trasforms, GL_DYNAMIC_DRAW);
+		}
+
+		// Uniforms
+		{
+			g_GlContext.ScreenSizeID = glGetUniformLocation(g_GlContext.ProgramID, "screenSize");
 		}
 		
 		glEnable(GL_FRAMEBUFFER_SRGB);
@@ -156,9 +173,25 @@ namespace CelesteGame {
 		glViewport(0, 0, g_InputState.ScreenSizeX, g_InputState.ScreenSizeY);
 		//glViewport(0, 0, 1200,720);
 
+		// Copy screenSize from CPU to GPU
+		{
+			Vec2 screenSize = { static_cast<float>(g_InputState.ScreenSizeX), 
+				static_cast<float>(g_InputState.ScreenSizeY) };
+			glUniform2fv(g_GlContext.ScreenSizeID, 1, &screenSize.X);
+		}
+		
+
+
+		// Opaque Objects
+		{
+			CelesteGame::glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * g_RenderData.transformCount,
+				g_RenderData.trasforms);
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_RenderData.transformCount);
+			g_RenderData.transformCount = 0;
+		}
 		
 		glBindVertexArray(g_GlContext.QuadVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
 	}
 
 

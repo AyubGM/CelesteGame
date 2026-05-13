@@ -3,9 +3,12 @@
 #include "Renderer.h"
 #include "Utils.h"
 #include "Input.h"
+//Temp
+#include "RendererInterface.h"
 #include <filesystem>
 #include "../vendor/glcorearb.h"
 #include "../vendor/wglext.h"
+
 
 namespace CelesteGame {
 
@@ -208,11 +211,25 @@ namespace CelesteGame {
             DispatchMessageA(&msg);
         }
     }
+    // TEMP
+    static void UpdateGame()
+    {
+        //The function does not really draw so I will change it is name to BatchSprite (maybe)
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 10; y++)
+            {
+                DrawSprite(SpriteID::DICE, { x * 100.0f, y * 100.0f }, { 100.0f, 100.0f });
+            }
+            
+        }
+        
+    }
 
     void Application::Run() {
         while (m_Running) {
             ProcessMessages();
-
+            UpdateGame();
             GLRender();
             SwapBuffers(m_Dc);
         }
