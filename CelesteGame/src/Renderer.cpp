@@ -1,8 +1,8 @@
-#include "gl_renderer.h"
+#include "Renderer.h"
 #include "File.h"
 #include "Input.h"
 #include "OpenGLSetup.h"
-
+#include "stb_image.h"
 namespace CelesteGame {
 
 	static void APIENTRY GLDebugCallbackFn(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -22,7 +22,8 @@ namespace CelesteGame {
 
 	struct GLContext
 	{
-		GLuint ProgramID;
+		GLuint ProgramID = 0;
+		GLuint TextureID = 0;
 		// I might need it
 		GLuint QuadVAO = 0;
 	};
@@ -48,6 +49,35 @@ namespace CelesteGame {
 		return true;
 	}
 
+	static bool LoadTexture(std::filesystem::path& filePath)
+	{
+		std::string filePathString = filePath.string();
+		SD_TRACE("Loading Texture: {}", filePathString);
+		int width, height, channels;
+		unsigned char* data = stbi_load(filePathString.c_str(), &width, &height, &channels, 4);
+		if (!data)
+		{
+			SD_ASSERT(false, "Faild to load Texture: {}", filePathString);
+			return false;
+		}
+		glGenTextures(1, &g_GlContext.TextureID);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, g_GlContext.TextureID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		stbi_image_free(data);
+
+		SD_TRACE("Texture Loaded: {}", filePathString);
+		return true;
+	}
+
 	bool GLInit(BumpAllocator& transientStorage)
 	{
 		LoadGlFunctions();
@@ -58,7 +88,7 @@ namespace CelesteGame {
 
 		GLuint vertShaderID = glCreateShader(GL_VERTEX_SHADER);
 		GLuint fragShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
+		
 		{
 			std::filesystem::path vertShaderPath = "assets/shaders/quad.vert";
 			std::filesystem::path fragShaderPath = "assets/shaders/quad.frag";
@@ -104,6 +134,13 @@ namespace CelesteGame {
 		glGenVertexArrays(1, &g_GlContext.QuadVAO);
 		glBindVertexArray(g_GlContext.QuadVAO);
 		
+		{
+			std::filesystem::path texurePath = "assets/textures/TEXTURE_ATLAS.png";
+			LoadTexture(texurePath);
+		}
+		
+		glEnable(GL_FRAMEBUFFER_SRGB);
+		glDisable(0x809D); //disable multisampling
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_GREATER); 
 	

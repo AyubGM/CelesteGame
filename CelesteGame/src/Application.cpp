@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "Logger.h"
-#include "gl_renderer.h"
+#include "Renderer.h"
 #include "Utils.h"
 #include "Input.h"
 #include <filesystem>

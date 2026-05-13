@@ -141,16 +141,17 @@
     <ClCompile Include="src\BumpAllocator.cpp" />
     <ClCompile Include="src\CelesteGame.cpp" />
     <ClCompile Include="src\File.cpp" />
-    <ClCompile Include="src\gl_renderer.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\OpenGLSetup.cpp" />
+    <ClCompile Include="vendor\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\BumpAllocator.h" />
     <ClInclude Include="src\File.h" />
-    <ClInclude Include="src\gl_renderer.h" />
+    <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\OpenGLSetup.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="vendor\glext.h" />
     <ClInclude Include="vendor\glxext.h" />
     <ClInclude Include="vendor\KHR\khrplatform.h" />
+    <ClInclude Include="vendor\stb_image.h" />
     <ClInclude Include="vendor\wglext.h" />
   </ItemGroup>
   <ItemGroup>
